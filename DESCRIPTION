@@ -1,13 +1,14 @@
 Package: truncsm
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Truncated Score Matching
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Daniel Williams
+Maintainer: Daniel Williams <fs19144@bristol.ac.uk>
+Description: Package to implement score matching on a truncated boundary.
+    Provides functions to create the boundary and fit and optimise parameters given this boundary.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests: 
     testthat (>= 2.1.0)
+RoxygenNote: 7.0.2

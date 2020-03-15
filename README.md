@@ -23,8 +23,7 @@ The function `truncsm` is the main feature of the package. Currently, you use th
 
  ## Multivariate Normal Example
  
- Here is some code which exemplifies the useage of this package to accurately estimate the mean of a multivariate Normal distribution
- centred on $\mu = (2,2)^T$:
+ Here is some code which exemplifies the useage of this package to accurately estimate the mean of a multivariate Normal distribution centred on (2,2):
  
  ```
 library(truncsm)

@@ -3,7 +3,14 @@
 This package is an implementation of truncated score matching, developed by Song Liu et al, which you can find here:
 [Estimating Density Models with Complex Truncation Boundaries](https://arxiv.org/abs/1910.03834)
 
-*This package is a work in progress.*
+**This package is a work in progress.**
+
+## Installation
+
+This package can be installed through github, which you will need the `devtools` package for. To install `devtools`, [please see here](https://www.r-project.org/nosvn/pandoc/devtools.html). Once this is installed, you can install this package with the command in R:
+```
+devtools::install_github("dannyjameswilliams/truncsm")
+```
 
 ## The Package
 

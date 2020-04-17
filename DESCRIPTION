@@ -9,7 +9,7 @@ Description: Package to implement score matching on a truncated boundary.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: sp
+Imports: sp, geosphere
 Suggests: 
     testthat (>= 2.1.0) 
 RoxygenNote: 7.0.2

@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/dannyjameswilliams/truncsm.svg?branch=master)](https://travis-ci.com/jakespiteri/chicagocrime)  
-<!--- [![codecov](https://codecov.io/gh/jakespiteri/chicagocrime/branch/master/graph/badge.svg)](https://codecov.io/gh/jakespiteri/chicagocrime)
+<!--- [![codecov](https://codecov.io/gh/jakespiteri/chicagocrime/branch/master/graph/badge.svg)](https://codecov.io/gh/jakespiteri/chicagocrime) --->
 
 # truncsm package
 

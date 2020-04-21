@@ -2,6 +2,7 @@ test_that("estimate VMF mu on hemisphere", {
   n = 1000
   real_mu = c(pi/2,pi)
   centre_euclid = sphere_to_euclid(real_mu)
+  set.seed(1)
   x1 = rnorm(n, real_mu[1], 0.1)
   x1 = ifelse(x1 > pi, x1-pi, x1)
   x1 = ifelse(x1 < 0, x1+pi, x1)
@@ -20,5 +21,5 @@ test_that("estimate VMF mu on hemisphere", {
   truncated_z = z[above_boundary,]
 
   est = sphere_sm(z, z_dV, g="Haversine")
-  expect_true(sqrt(sum((real_mu - est))^2) < 0.5)
+  expect_true(sqrt(sum((real_mu - est))^2) < 0.04)
 })

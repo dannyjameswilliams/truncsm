@@ -4,12 +4,14 @@
 \alias{g_disk}
 \title{Euclidean distance on disk}
 \usage{
-g_disk(z, dV)
+g_disk(z, dV, r = NULL)
 }
 \arguments{
 \item{z}{matrix of euclidean coordinates}
 
 \item{dV}{boundary in euclidean coordinates}
+
+\item{r}{radius of sphere}
 }
 \value{
 List containing two elements

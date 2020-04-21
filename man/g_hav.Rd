@@ -21,3 +21,20 @@ List containing two elements
 \description{
 Calculate great circle distance between a set of points and a boundary, with gradient
 }
+\details{
+This is one possible boundary function \code{g} that can be used for truncated score matching on a sphere,
+used by the \code{"Haversine"} argument to \code{\link{sphere_sm}}.
+
+This function first finds the distance between the truncated dataset \code{z} and the boundary \code{dV}, using the
+haversine distance function (from the \code{geosphere} package):
+\deqn{
+ d = 2 r arcsin( \sqrt{ sin^2 ( (\theta_2 - \theta_1) / 2 ) + cos (\theta_1) cos(\theta_2) sin^2( (\phi_2 - \phi_1)/2 ) } ),
+}
+where \eqn{(\phi_1, \theta_1)} is the longitude and latitude of point 1, and \eqn{(\phi_2, \theta_2)}
+is the longitude and latitude of point 2, both in radians, and \eqn{r} is the radius, default \code{r=1}.
+Once the distances are found, the smallest distances between \code{x} and the boundary as well as the first derivative
+of the haversine function are saved and output back to the score matching function.
+
+Note that \code{z} and \code{dV} are Euclidean coordinates, and this function converts them to spherical coordinates
+before taking the distance (as required by the Haversine). This is for consistency.
+}

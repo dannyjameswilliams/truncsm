@@ -8,15 +8,15 @@ sphere_sm(
   x,
   dV,
   family = "vmf",
-  g,
+  g = "Default",
   init = colMeans(euclid_to_sphere(x)),
   options = list()
 )
 }
 \arguments{
-\item{x}{spherical coordinate data}
+\item{x}{(truncated) euclidean coordinate data; 3D}
 
-\item{dV}{boundary coordinates}
+\item{dV}{boundary euclidean coordinates; 3D}
 
 \item{family}{distribution, e.g. "vmf" for von-Mises Fisher}
 
@@ -31,13 +31,31 @@ by including \code{psi} which returns first and second derivative of log pdf as 
 parameter estimates
 }
 \description{
-Truncated Spherical Score Matching
+Numerical minimisation of objective function corresponding to score matching on a sphere with a boundary
+defined on a sphere
 }
 \details{
-if \code{g} is not included as an argument, then non-truncated score matching will be used. For
-a sphere, use
+The variable \code{x} can take values within a certain truncated region, where the boundary of this region is defined by
+\code{dV}. It is possible through score matching to estimate parameters that are not constrained
+to the boundary by minimising the difference in score functions of the model and the data - the gradient of the log pdf, i.e.
+\deqn{
+\psi = \nabla log p(x; \theta).
+}
+
+This function is mostly a wrapper function; it goes through multiple functions to eventually optimise
+the objective function. If \code{g} is not included as an argument, then non-truncated score matching will be used. For
+a sphere.
+
+Use the following arguments for \code{g}:
 \describe{
 \item{\code{"Haversine"}}{haversine distance function \code{\link{g_hav}}}
 \item{\code{"Euclidean"}}{euclidean projection distance function \code{\link{g_disk}}}
 }
+The argument \code{g} can be overwritten by including a function as an element of the \code{options} list. This
+needs to return the values of the function for each point in the truncated dataset as \code{g}, and its first derivative
+as \code{grad}, both in a list. See \code{\link{g_hav}} and \code{\link{g_disk}} for examples.
+
+\code{psi} can also be overwritten by including it as an element of the \code{options} list. This needs to
+return the first and second derivative of the log pdf as \code{f} and \code{grad} respectively in a list. See \code{\link{psi_vmf}}
+or \code{\link{psi_kent}} for examples.
 }

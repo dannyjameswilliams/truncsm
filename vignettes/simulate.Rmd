@@ -1,0 +1,216 @@
+---
+title: "Simple Usage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{vonmisesfisher}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(truncsm)
+library(sp)
+library(Rfast)
+library(ggplot2)
+```
+
+
+## Simulate von-Mises Fisher distribution
+
+We simulate $n=1000$ samples from a von-Mises distribution with mean direction $(\pi/2, \pi)$ on the sphere, using the `rvmf` function from the `Rfast` package.
+
+```{r}
+# Simulate
+n = 1000              
+centre = c(pi/2, pi) 
+centre_euclid = sphere_to_euclid(centre)   
+z = rvmf(n, centre_euclid, k = 10)          
+```
+
+Now this can be estimated directly, using various methods such as MLE, but if we could only see a portion of this data, then truncated score matching can be used. Say there is a boundary set up as follows:
+```{r}
+# Set up boundary
+boundary_points = cbind(
+  c(pi/2+0.1, pi/2+0.1, pi/2-0.6, pi/2-0.6, pi/2+0.1),
+  c(pi-1, pi+1, pi+1, pi-1, pi-1)
+)
+dV = polygon_points(boundary_points[,2], boundary_points[,1], res = 100)
+```
+
+This is a rectangle surrounding some of the points in the simulated dataset. These can be retrieved using simple logical statements, or the `point.in.polygon` function from the `sp` package. However, since the von-Mises fisher distribution is in 3D Euclidean coordinates, i.e. $\boldsymbol{z} \in \mathcal{R}^3$, to take the truncation, we first need to convert them to spherical coordinates, i.e. $\boldsymbol{x} \in S^2$. `truncsm` has a built in function to do this: `euclid_to_sphere` (and its counterpart `sphere_to_euclid`).
+
+```{r}
+# To take those points above the boundary, first create spherical version of z
+x = euclid_to_sphere(z)
+
+# Take points above boundary
+outside_boundary = point.in.polygon(x[,2], x[,1], boundary_points[,2], boundary_points[,1])
+truncated_x = x[as.logical(outside_boundary),]
+
+# and also convert to 3D for truncated z and boundary dV
+z_dV = sphere_to_euclid(dV) 
+truncated_z = z[as.logical(outside_boundary),]
+```
+
+The mean direction can be found by calling `sphere_sm` with a specified boundary function, one of `"Haversine"` or `"Euclidean"`.
+```{r}
+est_hav = sphere_sm(truncated_z, z_dV, g = "Haversine")
+est_euc = sphere_sm(truncated_z, z_dV, g = "Euclidean")
+```
+
+These estimated centres can be plotted with the data and the truncated data.
+```{r fig.align = "center", fig.width = 7, fig.height =3.5}
+plot_data = data.frame(colat = c(x[!as.logical(outside_boundary),1],
+                                     x[as.logical(outside_boundary),1]),
+                       lon = c(x[!as.logical(outside_boundary),2],
+                                     x[as.logical(outside_boundary),2]),
+                       label = c(rep("Non-Truncated", sum(!as.logical(outside_boundary))), 
+                                 rep("Truncated", sum(outside_boundary))))
+ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5)+ 
+  geom_point(data = data.frame(
+    colat = c(est_hav[1], est_euc[1], centre[1]),
+    lon = c(est_hav[2], est_euc[2], centre[2]),
+    label = c("Haversine", "Euclidean", "Real Centre")
+  ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled") 
+```
+
+## Another Boundary
+
+We can experiment with a different boundary, implementing the same approach to the same dataset but a different truncation region.
+
+```{r}
+# Take points above boundary
+outside_boundary = x[,1] > pi/2 + 0.1 & x[,2] < 3.5
+dV = cbind(rep(pi/2+ 0.1, 100), seq(0, 3.5, len=100), seq(pi/2+0.1, pi, len=100), rep(3.5, 100))
+z_dV = sphere_to_euclid(dV)
+truncated_x = x[as.logical(outside_boundary),]
+truncated_z = z[as.logical(outside_boundary),]
+
+est_hav = sphere_sm(truncated_z, z_dV, g = "Haversine")
+est_euc = sphere_sm(truncated_z, z_dV, g = "Euclidean")
+```
+
+```{r fig.align = "center", fig.width = 7, fig.height = 3.5}
+plot_data = data.frame(colat = c(x[!as.logical(outside_boundary),1],
+                                     x[as.logical(outside_boundary),1]),
+                       lon = c(x[!as.logical(outside_boundary),2],
+                                     x[as.logical(outside_boundary),2]),
+                       label = c(rep("Non-Truncated", sum(!as.logical(outside_boundary))), 
+                                 rep("Truncated", sum(outside_boundary))))
+ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
+  geom_point(data = data.frame(
+    colat = c(est_hav[1], est_euc[1], centre[1]),
+    lon = c(est_hav[2], est_euc[2], centre[2]),
+    label = c("Haversine", "Euclidean", "Real Centre")
+  ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
+```
+
+## Kent Distribution
+
+So far, this approach has been restricted to using a von-Mises Fisher distribution, but a more general distribution on a sphere is given by the Kent distribution. This distribution has three parameter vectors, describing the mean direction, and the major and minor axes. The built in `family` argument to `sphere_sm` can take `"kent"`, using the default values of the concentration parameter `k=10` and the ovalness parameter `beta=1`. Using the same approach above gives:
+
+```{r include=FALSE}
+set.seed(4)
+```
+```{r fig.align = "center", fig.width = 7, fig.height =5}
+library(Directional, quietly=TRUE)
+mu <- rnorm(3)
+mu <- mu / sqrt( sum(mu^2) )
+centre = euclid_to_sphere(mu)
+y <- rkent(500, k=10, mu, 1)
+x = euclid_to_sphere(y)
+
+dV = cbind(rep(pi/2, 100), seq(0, 2*pi, len=100))
+truncated_y = y[x[,1] > pi/2,]
+truncated_x = x[x[,1] > pi/2,]
+init = rep(colMeans(x),3); dim(init) = c(2,3)
+est_hav = sphere_sm(truncated_y, family="kent", dV=sphere_to_euclid(dV), init = init, g="Haversine")
+est_euc = sphere_sm(truncated_y, family="kent", dV=sphere_to_euclid(dV), init = init, g="Euclidean")
+```
+
+```{r fig.align="center", fig.width=7, fig.height=3.5}
+plot_data = data.frame(colat = c(x[!(x[,1] > pi/2),1],
+                                     x[x[,1] > pi/2,1]),
+                       lon = c(x[!(x[,1] > pi/2),2],
+                                     x[x[,1] > pi/2,2]),
+                       label = c(rep("Non-Truncated", sum(!(x[,1] > pi/2))), 
+                                 rep("Truncated", sum(x[,1] > pi/2))))
+ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
+  geom_point(data = data.frame(
+    colat = c(est_hav[1], est_euc[1], centre[1]),
+    lon = c(est_hav[2], est_euc[2], centre[2]),
+    label = c("Haversine", "Euclidean", "Real Centre")
+  ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
+```
+
+
+
+
+### Modifying the Probability Density Function
+
+To modify `psi_kent`, we can re-write the function and pass it into the `options` argument to `sphere_sm`, for example if we wanted to increase the value of `beta`, or change the default concentration parameter `k`.
+
+```{r}
+psi_kent = function(par, x, k=10, beta=3){
+  gamma1 = par[,1]
+  gamma2 = par[,2]
+  gamma3 = par[,3]
+  list(
+    "f" = k*gamma1 + 2*beta*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
+    "grad" = 2*beta*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))
+  )
+}
+```
+```{r include=FALSE}
+set.seed(4)
+```
+```{r}
+library(Directional)
+mu <- rnorm(3)
+mu <- mu / sqrt( sum(mu^2) )
+A <- diag( c(-5, 1, 5) )
+y <- rkent(500, k=10, mu, 3)
+x = euclid_to_sphere(y)
+
+dV = cbind(rep(pi/2, 100), seq(0, 2*pi, len=100))
+truncated_y = y[x[,1] > pi/2, ]
+truncated_x = x[x[,1] > pi/2, ]
+init = rep(colMeans(x),3); dim(init) = c(2,3)
+est_hav = sphere_sm(truncated_y, dV=sphere_to_euclid(dV), init = init, g="Haversine",
+                    options = list("psi" = psi_kent))
+centre = euclid_to_sphere(mu)
+```
+
+```{r fig.align = "center", fig.width = 7, fig.height =3.5}
+plot_data = data.frame(colat = c(x[!(x[,1] > pi/2),1],
+                                     x[x[,1] > pi/2,1]),
+                       lon = c(x[!(x[,1] > pi/2),2],
+                                     x[x[,1] > pi/2,2]),
+                       label = c(rep("Non-Truncated", sum(!(x[,1] > pi/2))), 
+                                 rep("Truncated", sum(x[,1] > pi/2))))
+ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
+  geom_point(data = data.frame(
+    colat = c(est_hav[1], centre[1]),
+    lon = c(est_hav[2], centre[2]),
+    label = c("Haversine", "Real Centre")
+  ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
+```
+
+
+
+
+
+
+
+
+
+
+
+

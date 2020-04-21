@@ -15,6 +15,9 @@ test_that("mvn simulation", {
     return(norm(real_mean - truncsm_est, "2"))
   }
   out = rep(NA, 100)
-  for(i in 1:100) out[i] = mvn_sim()
-  expect_true(mean(out) < 0.5)
+  for(i in 1:100) {
+    set.seed(i)
+    out[i] = mvn_sim()
+  }
+  expect_true(mean(out) < 0.2)
 })

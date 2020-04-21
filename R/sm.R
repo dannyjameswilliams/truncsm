@@ -80,19 +80,19 @@ truncsm = function(x, dV, family="mvn", init=rep(0.1,ncol(x)),
   return(out$par)
 }
 
-#' match g
 #' @keywords internal
-match_g = function(options, g=NULL){
+match_g = function(options){
   if(is.null(options$g)) g = g_def else g=options$g
+  return(g)
 }
 
-#' match psi
 #' @keywords internal
 match_family_psi = function(name, options, psi=NULL){
-  if(!is.null(options$psi)) psi = options$psi
-  if(name=="mvn") psi = psi_mvn
-  if(is.null(psi)) stop("either 'family' or 'psi' need to be specified, see ?truncsm")
-  return(psi)
+  if(!is.null(options$psi)) {
+    return(options$psi)
+  }
+  if(name=="mvn") return(psi_mvn)
+  stop("either 'family' or 'psi' need to be specified, see ?truncsm")
 }
 
 #' Derivatives of the Log Density of Multivariate Normal Distribution

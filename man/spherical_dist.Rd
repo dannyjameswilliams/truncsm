@@ -6,20 +6,14 @@
 \alias{psi_kent}
 \title{Derivatives of the Log Density of spherical distributions}
 \usage{
-psi_vmf(mu, x, k = 10)
+psi_vmf(par, x)
 
-psi_kent(par, x, k = 10, beta = 1)
+psi_kent(par, x)
 }
 \arguments{
-\item{mu}{mean direction to be estimated for the von-Mises Fisher distribution}
+\item{par}{parameter vector to be estimated}
 
 \item{x}{random variable x, taken one row at a time}
-
-\item{k}{concentration parameter, default \code{k=10}}
-
-\item{par}{matrix of parameters to estimate for the Kent distribution}
-
-\item{beta}{ovalness parameter, default \code{beta=1}}
 }
 \value{
 list containing two elements
@@ -31,7 +25,8 @@ The first and second derivative of the log density of the von-Mises Fisher distr
 }
 \details{
 \code{psi_vmf} corresponds to the von-Mises Fisher distribution, where \code{psi_kent} corresponds to the
-Kent distribution. The parameter to be estimated for the von-Mises Fisher distribution is the mean direction \code{mu},
-whereas for the Kent distribution, the parameters are \code{mu}, and the major and minor axes. The parameters enter
-\code{psi_kent} in a matrix with columns corresponding to these parameters respectively.
+Kent distribution. The parameters to be estimated for the von-Mises Fisher distribution are the mean direction \code{mu} and
+concentration parameter \code{k}. Whereas for the Kent distribution, the parameters are \code{mu}, the major and minor axes
+\code{gamma1} and \code{gamma2}, the concentration parameter \code{k} and ovalness parameter \code{b}. The parameters enter
+\code{psi_kent} in a long vector.
 }

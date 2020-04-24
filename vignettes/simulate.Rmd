@@ -61,8 +61,8 @@ truncated_z = z[as.logical(outside_boundary),]
 
 The mean direction can be found by calling `sphere_sm` with a specified boundary function, one of `"Haversine"` or `"Euclidean"`.
 ```{r}
-est_hav = sphere_sm(truncated_z, z_dV, g = "Haversine")
-est_euc = sphere_sm(truncated_z, z_dV, g = "Euclidean")
+est_hav = sphere_sm(truncated_x, dV, g = "Haversine")
+est_euc = sphere_sm(truncated_x, dV, g = "Euclidean")
 ```
 
 These estimated centres can be plotted with the data and the truncated data.
@@ -75,8 +75,8 @@ plot_data = data.frame(colat = c(x[!as.logical(outside_boundary),1],
                                  rep("Truncated", sum(outside_boundary))))
 ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5)+ 
   geom_point(data = data.frame(
-    colat = c(est_hav[1], est_euc[1], centre[1]),
-    lon = c(est_hav[2], est_euc[2], centre[2]),
+    colat = c(est_hav$mu[1], est_euc$mu[1], centre[1]),
+    lon = c(est_hav$mu[2], est_euc$mu[2], centre[2]),
     label = c("Haversine", "Euclidean", "Real Centre")
   ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled") 
 ```
@@ -93,8 +93,8 @@ z_dV = sphere_to_euclid(dV)
 truncated_x = x[as.logical(outside_boundary),]
 truncated_z = z[as.logical(outside_boundary),]
 
-est_hav = sphere_sm(truncated_z, z_dV, g = "Haversine")
-est_euc = sphere_sm(truncated_z, z_dV, g = "Euclidean")
+est_hav = sphere_sm(truncated_x, dV, g = "Haversine")
+est_euc = sphere_sm(truncated_x, dV, g = "Euclidean")
 ```
 
 ```{r fig.align = "center", fig.width = 7, fig.height = 3.5}
@@ -106,8 +106,8 @@ plot_data = data.frame(colat = c(x[!as.logical(outside_boundary),1],
                                  rep("Truncated", sum(outside_boundary))))
 ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
   geom_point(data = data.frame(
-    colat = c(est_hav[1], est_euc[1], centre[1]),
-    lon = c(est_hav[2], est_euc[2], centre[2]),
+    colat = c(est_hav$mu[1], est_euc$mu[1], centre[1]),
+    lon = c(est_hav$mu[2], est_euc$mu[2], centre[2]),
     label = c("Haversine", "Euclidean", "Real Centre")
   ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
 ```
@@ -119,7 +119,7 @@ So far, this approach has been restricted to using a von-Mises Fisher distributi
 ```{r include=FALSE}
 set.seed(4)
 ```
-```{r fig.align = "center", fig.width = 7, fig.height =5}
+```{r kent1}
 library(Directional, quietly=TRUE)
 mu <- rnorm(3)
 mu <- mu / sqrt( sum(mu^2) )
@@ -130,12 +130,11 @@ x = euclid_to_sphere(y)
 dV = cbind(rep(pi/2, 100), seq(0, 2*pi, len=100))
 truncated_y = y[x[,1] > pi/2,]
 truncated_x = x[x[,1] > pi/2,]
-init = rep(colMeans(x),3); dim(init) = c(2,3)
-est_hav = sphere_sm(truncated_y, family="kent", dV=sphere_to_euclid(dV), init = init, g="Haversine")
-est_euc = sphere_sm(truncated_y, family="kent", dV=sphere_to_euclid(dV), init = init, g="Euclidean")
+est_hav = sphere_sm(truncated_x, family="kent", dV=dV, g="Haversine")
+est_euc = sphere_sm(truncated_x, family="kent", dV=dV, g="Euclidean")
 ```
 
-```{r fig.align="center", fig.width=7, fig.height=3.5}
+```{r kentfig1, fig.align="center", fig.width=7, fig.height=3.5}
 plot_data = data.frame(colat = c(x[!(x[,1] > pi/2),1],
                                      x[x[,1] > pi/2,1]),
                        lon = c(x[!(x[,1] > pi/2),2],
@@ -144,8 +143,8 @@ plot_data = data.frame(colat = c(x[!(x[,1] > pi/2),1],
                                  rep("Truncated", sum(x[,1] > pi/2))))
 ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
   geom_point(data = data.frame(
-    colat = c(est_hav[1], est_euc[1], centre[1]),
-    lon = c(est_hav[2], est_euc[2], centre[2]),
+    colat = c(est_hav$mu[1], est_euc$mu[1], centre[1]),
+    lon = c(est_hav$mu[2], est_euc$mu[2], centre[2]),
     label = c("Haversine", "Euclidean", "Real Centre")
   ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
 ```
@@ -155,13 +154,13 @@ ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) +
 
 ### Modifying the Probability Density Function
 
-To modify `psi_kent`, we can re-write the function and pass it into the `options` argument to `sphere_sm`, for example if we wanted to increase the value of `beta`, or change the default concentration parameter `k`.
+To modify `psi_kent`, we can re-write the function and pass it into the `options` argument to `sphere_sm`, for example if we wanted to keep the values of the concentration parameter/ovalness parameter constant.
 
-```{r}
-psi_kent = function(par, x, k=10, beta=3){
-  gamma1 = par[,1]
-  gamma2 = par[,2]
-  gamma3 = par[,3]
+```{r psi_kent}
+psi_kent_fixed = function(par, x, k=5, beta=1.5){
+  gamma1 = par[1:3]
+  gamma2 = par[4:6]
+  gamma3 = par[7:9]
   list(
     "f" = k*gamma1 + 2*beta*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
     "grad" = 2*beta*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))
@@ -169,22 +168,21 @@ psi_kent = function(par, x, k=10, beta=3){
 }
 ```
 ```{r include=FALSE}
-set.seed(4)
+set.seed(6)
 ```
 ```{r}
 library(Directional)
 mu <- rnorm(3)
 mu <- mu / sqrt( sum(mu^2) )
 A <- diag( c(-5, 1, 5) )
-y <- rkent(500, k=10, mu, 3)
+y <- rkent(500, k=5, mu, 1.5)
 x = euclid_to_sphere(y)
 
 dV = cbind(rep(pi/2, 100), seq(0, 2*pi, len=100))
 truncated_y = y[x[,1] > pi/2, ]
 truncated_x = x[x[,1] > pi/2, ]
-init = rep(colMeans(x),3); dim(init) = c(2,3)
-est_hav = sphere_sm(truncated_y, dV=sphere_to_euclid(dV), init = init, g="Haversine",
-                    options = list("psi" = psi_kent))
+est_hav = sphere_sm(truncated_x, dV=dV, g="Haversine", init = rep(colMeans(x), 3),
+                    options = list("psi" = psi_kent_fixed))
 centre = euclid_to_sphere(mu)
 ```
 
@@ -197,8 +195,8 @@ plot_data = data.frame(colat = c(x[!(x[,1] > pi/2),1],
                                  rep("Truncated", sum(x[,1] > pi/2))))
 ggplot(plot_data) + geom_point(aes(x=lon, y=colat, col=label), alpha=0.5) + 
   geom_point(data = data.frame(
-    colat = c(est_hav[1], centre[1]),
-    lon = c(est_hav[2], centre[2]),
+    colat = c(est_hav$mu[1], centre[1]),
+    lon = c(est_hav$mu[2], centre[2]),
     label = c("Haversine", "Real Centre")
   ), aes(x=lon, y=colat, fill=label), size=3, shape = "circle filled")
 ```

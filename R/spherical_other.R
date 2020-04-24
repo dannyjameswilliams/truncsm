@@ -1,15 +1,15 @@
 #' @keywords internal
 par_to_euclid = function(x){
-  xmatrix = is.matrix(x)
-  x = t(x)
-  z1 = cos(x[,1])
-  z2 = sin(x[,1])*cos(x[,2])
-  z3 = sin(x[,1])*sin(x[,2])
-  if (xmatrix){
-    return(t(cbind(z1, z2, z3)))
-  } else {
-    return(c(z1, z2, z3))
+  times = if(length(x) >= 6) 6 else 2
+  xout = c()
+  for(i in seq(1, times, by =2)){
+    xout = append(xout, cos(x[i]))
+    xout = append(xout, sin(x[i])*cos(x[i+1]))
+    xout = append(xout, sin(x[i])*sin(x[i+1]))
   }
+  if(length(x) > times) xout = append(xout,
+                                             x[(times+1):length(x)])
+  return(xout)
 }
 
 
@@ -67,17 +67,14 @@ g_derivx = function(z){
 }
 
 #' @keywords internal
-spherical_bounds = function(mu){
-  p = ncol(as.matrix(mu)); n = nrow(as.matrix(mu))
-  if(p > 1) mu = as.vector(mu)
-  for(i in seq(2, n, by=2)){
-    mu[1] = ifelse(mu[i-1] < 0, mu[i-1] + pi, mu[i-1])
-    mu[1] = ifelse(mu[i-1] > pi, mu[i-1] - pi, mu[i-1])
-    mu[2] = ifelse(mu[i] < 0, mu[i] + 2*pi, mu[i])
-    mu[2] = ifelse(mu[i] > 2*pi, mu[i] - 2*pi, mu[i])
+par_bounds = function(x){
+  times = if(length(x) == 6) 6 else 2
+  xout = c()
+  for(i in seq(1, times, by = 2)){
+    x[i] = x[i] %% (pi)
+    x[i+1] = x[i+1] %% (2*pi)
   }
-  if(p > 1) dim(mu) = c(n, p)
-  return(mu)
+  return(x)
 }
 
 #' Convert Degrees to radian

@@ -20,6 +20,6 @@ test_that("estimate VMF mu on hemisphere", {
   truncated_x = x[above_boundary,]
   truncated_z = z[above_boundary,]
 
-  est = sphere_sm(z, z_dV, g="Haversine")
-  expect_true(sqrt(sum((real_mu - est))^2) < 0.04)
+  est = sphere_sm(truncated_x, dV, g="Haversine")
+  expect_true(sqrt(sum((real_mu - est$mu))^2) < 0.01)
 })

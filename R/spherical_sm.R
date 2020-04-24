@@ -108,8 +108,8 @@ get_J = function(z, dV, g, psi, r=1){
   # will only have the given z, dV, and g in its environment, regardless whether they
   # are changed somewhere else. This also speeds up computation.
   J = function(mu){
-    if(length(mu) > ncol(z)) dim(mu) = c(ncol(z)-1, length(mu)/(ncol(z)-1))
-    mu = spherical_bounds(mu)
+
+    mu = par_bounds(mu)
     mu = par_to_euclid(mu)
 
     Jout = rep(NA, nrow(z))
@@ -173,20 +173,45 @@ g_default_sphere = function(z, dV, r=NULL){
 #' or \code{\link{psi_kent}} for examples.
 #' @return parameter estimates
 #' @export
-sphere_sm = function(x, dV, family="vmf", g="Default", init=colMeans(euclid_to_sphere(x)), options = list()){
+sphere_sm = function(x, dV, family="vmf", g="Default", init=NULL, options=list()){
   x = as.matrix(x)
-  psi = match_family_psi_sphere(family, options)
-  g_fn = match_g_sphere(g, options)
-  obj_fn = get_J(x, dV, g_fn, psi)
+  z = sphere_to_euclid(x)
+  zdV = sphere_to_euclid(dV)
+
+  psi = match_family_psi_sphere(family, options$psi)
+  g_fn = match_g_sphere(g, options$g)
+  obj_fn = get_J(z, zdV, g_fn, psi$f)
+
+  if(is.null(init)) init = get_init(psi$family, x)
   est = optim(init, obj_fn, method="BFGS")
-  return(est$par)
+  out = get_out(est, psi$family)
+  return(out)
 }
 
 #' @keywords internal
-match_g_sphere = function(g, options){
-  if(!is.null(options$g)) {
-    return(options$g)
-  }
+get_init = function(family, x){
+  if(is.null(family)) return(NULL)
+  if(family == "von Mises Fisher") return(c(colMeans(x[,1:2]),1))
+  if(family == "Kent") return(c(colMeans(x[,1:2]),colMeans(x[,1:2]),colMeans(x[,1:2]),5,1))
+}
+
+#' @keywords internal
+get_out = function(est, family){
+  if(is.null(family)) return(list(
+    est = est$par
+  ))
+  if(family=="von Mises Fisher") return(list(
+    mu = est$par[1:2], k = est$par[3], family = family
+  ))
+  if(family=="Kent") return(list(
+    mu = est$par[1:2], major = est$par[3:4], minor = est$par[5:6],
+    k = est$par[7], b = est$par[8], family = family
+  ))
+}
+
+#' @keywords internal
+match_g_sphere = function(g, g_opt){
+  if(typeof(g_opt)=="closure") return(g_opt)
   types = c("Default", "Disk", "Euclidean", "Haversine")
   pick = grep(g, types, ignore.case = TRUE)
   if(pick == 1) return(g_default_sphere)
@@ -196,32 +221,27 @@ match_g_sphere = function(g, options){
 }
 
 #' @keywords internal
-match_family_psi_sphere = function(name, options){
-  if(!is.null(options$psi)) {
-    psi = options$psi
-    return(psi)
-  }
+match_family_psi_sphere = function(name, psi){
+  if(typeof(psi) == "closure") return(list(f=psi, family=NULL))
   types = c("vmf", "von Mises Fisher", "von-Mises Fisher", "kent")
   pick = grep(name, types, ignore.case = TRUE)
-  if(pick==1 | pick==2 | pick==3) return(psi_vmf)
-  if(pick==4) return(psi_kent)
-  if(is.null(psi)) stop("either 'family' or 'psi' need to be specified, see ?sphere_sm")
+  if(pick==1 | pick==2 | pick==3) return(list(f=psi_vmf, family="von Mises Fisher"))
+  if(pick==4) return(list(f=psi_kent, family="Kent"))
+  stop("either 'family' or 'psi' need to be specified, see ?sphere_sm")
 }
 
 #' Derivatives of the Log Density of spherical distributions
 #'
 #' The first and second derivative of the log density of the von-Mises Fisher distribution and Kent distribution
 #'
-#' @param mu mean direction to be estimated for the von-Mises Fisher distribution
-#' @param par matrix of parameters to estimate for the Kent distribution
+#' @param par parameter vector to be estimated
 #' @param x random variable x, taken one row at a time
-#' @param k concentration parameter, default \code{k=10}
-#' @param beta ovalness parameter, default \code{beta=1}
 #'
 #' @details \code{psi_vmf} corresponds to the von-Mises Fisher distribution, where \code{psi_kent} corresponds to the
-#' Kent distribution. The parameter to be estimated for the von-Mises Fisher distribution is the mean direction \code{mu},
-#' whereas for the Kent distribution, the parameters are \code{mu}, and the major and minor axes. The parameters enter
-#' \code{psi_kent} in a matrix with columns corresponding to these parameters respectively.
+#' Kent distribution. The parameters to be estimated for the von-Mises Fisher distribution are the mean direction \code{mu} and
+#' concentration parameter \code{k}. Whereas for the Kent distribution, the parameters are \code{mu}, the major and minor axes
+#' \code{gamma1} and \code{gamma2}, the concentration parameter \code{k} and ovalness parameter \code{b}. The parameters enter
+#' \code{psi_kent} in a long vector.
 #'
 #' @return list containing two elements
 #' \item{\code{f}}{the evaluation of the first derivative}
@@ -232,19 +252,23 @@ NULL
 
 #' @rdname spherical_dist
 #' @export
-psi_vmf = function(mu, x, k = 10) {
+psi_vmf = function(par, x) {
+  mu = par[1:3]
+  k = par[4]
   return(list("f"=k*mu, "grad"=matrix(0, length(mu), length(mu))))
 }
 
 #' @rdname spherical_dist
 #' @export
-psi_kent = function(par, x, k=10, beta=1){
-  gamma1 = par[,1]
-  gamma2 = par[,2]
-  gamma3 = par[,3]
+psi_kent = function(par, x){
+  gamma1 = par[1:3]
+  gamma2 = par[4:6]
+  gamma3 = par[7:9]
+  k = par[10]
+  b = par[11]
   list(
-    "f" = k*gamma1 + 2*beta*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
-    "grad" = 2*beta*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))
+    "f" = k*gamma1 + 2*b*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
+    "grad" = 2*b*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))
   )
 }
 

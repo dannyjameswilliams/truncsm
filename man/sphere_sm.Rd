@@ -4,14 +4,7 @@
 \alias{sphere_sm}
 \title{Truncated Spherical Score Matching}
 \usage{
-sphere_sm(
-  x,
-  dV,
-  family = "vmf",
-  g = "Default",
-  init = colMeans(euclid_to_sphere(x)),
-  options = list()
-)
+sphere_sm(x, dV, family = "vmf", g = "Default", init = NULL, options = list())
 }
 \arguments{
 \item{x}{(truncated) euclidean coordinate data; 3D}

@@ -5,6 +5,9 @@ vignette: >
   %\VignetteIndexEntry{vonmisesfisher}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{Directional}
+  %\VignetteDepends{Rfast}
+  %\VignetteDepends{ggplot2}
 ---
 
 ```{r, include = FALSE}

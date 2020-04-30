@@ -9,10 +9,14 @@ Description: Package to implement score matching on a truncated boundary.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Depends: R (>= 3.5.0), stats
 Imports: sp, geosphere
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    Directional,
+    Rfast,
+    ggplot2
 RoxygenNote: 7.0.2
 VignetteBuilder: knitr

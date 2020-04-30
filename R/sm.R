@@ -72,6 +72,7 @@ J_ = function(theta, x, dV, psi, g_val, g_grad){
 #' @export
 truncsm = function(x, dV, family="mvn", init=rep(0.1,ncol(x)),
                    options = list()){
+  x = as.matrix(x)
   psi = match_family_psi(family, options)
   g = match_g(options)
   g_eval = g(x, dV)
@@ -110,6 +111,7 @@ match_family_psi = function(name, options, psi=NULL){
 psi_mvn = function(theta, x) {
   if(length(theta)>length(x)) Cov = matrix(theta[(length(x)+1):length(theta)],length(x),length(x)) else Cov = diag(length(theta))
   mu = theta[1:length(x)]
+  x = as.vector(x)
   Cov_inv = solve(Cov)
   return(list("f"=-Cov_inv %*% (x-mu), "grad"=-Cov_inv))
 }

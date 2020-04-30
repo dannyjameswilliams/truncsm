@@ -201,10 +201,12 @@ get_out = function(est, family){
     est = est$par
   ))
   if(family=="von Mises Fisher") return(list(
-    mu = est$par[1:2], k = est$par[3], family = family
+    mu = est$par[1:2] %% c(pi, 2*pi), k = est$par[3], family = family
   ))
   if(family=="Kent") return(list(
-    mu = est$par[1:2], major = est$par[3:4], minor = est$par[5:6],
+    mu = est$par[1:2] %% c(pi, 2*pi),
+    major = est$par[3:4] %% c(pi, 2*pi),
+    minor = est$par[5:6] %% c(pi, 2*pi),
     k = est$par[7], b = est$par[8], family = family
   ))
 }
@@ -255,6 +257,7 @@ NULL
 psi_vmf = function(par, x) {
   mu = par[1:3]
   k = par[4]
+  if(k < 0) return(list(f=rep(9e5,3), grad=matrix(9e5,3,3)))
   return(list("f"=k*mu, "grad"=matrix(0, length(mu), length(mu))))
 }
 
@@ -266,6 +269,7 @@ psi_kent = function(par, x){
   gamma3 = par[7:9]
   k = par[10]
   b = par[11]
+  if(2*b > k | b < 0 | k < 0) return(list(f=rep(9e5,3), grad=matrix(9e5,3,3)))
   list(
     "f" = k*gamma1 + 2*b*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
     "grad" = 2*b*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))

@@ -1,5 +1,6 @@
 #' @keywords internal
 par_to_euclid = function(x){
+  times = if(length(x) >= 4) 4 else 2
   times = if(length(x) >= 6) 6 else 2
   xout = c()
   for(i in seq(1, times, by =2)){

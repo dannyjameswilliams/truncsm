@@ -108,10 +108,6 @@ get_J = function(z, dV, g, psi, r=1){
   # will only have the given z, dV, and g in its environment, regardless whether they
   # are changed somewhere else. This also speeds up computation.
   J = function(mu){
-
-    mu = par_bounds(mu)
-    mu = par_to_euclid(mu)
-
     Jout = rep(NA, nrow(z))
     for(i in 1:nrow(z)){
       z0 = unlist(z[i,])
@@ -173,7 +169,7 @@ g_default_sphere = function(z, dV, r=NULL){
 #' or \code{\link{psi_kent}} for examples.
 #' @return parameter estimates
 #' @export
-sphere_sm = function(x, dV, family="vmf", g="Default", init=NULL, options=list()){
+sphere_sm = function(x, dV, family=vmf(), g="Default", init=NULL, options=list()){
   x = as.matrix(x)
   z = sphere_to_euclid(x)
   zdV = sphere_to_euclid(dV)
@@ -182,33 +178,54 @@ sphere_sm = function(x, dV, family="vmf", g="Default", init=NULL, options=list()
   g_fn = match_g_sphere(g, options$g)
   obj_fn = get_J(z, zdV, g_fn, psi$f)
 
-  if(is.null(init)) init = get_init(psi$family, x)
+  if(is.null(init)) init = get_init(psi, x)
   est = optim(init, obj_fn, method="BFGS")
-  out = get_out(est, psi$family)
+  out = get_out(est, psi)
   return(out)
 }
 
 #' @keywords internal
-get_init = function(family, x){
-  if(is.null(family)) return(NULL)
-  if(family == "von Mises Fisher") return(c(colMeans(x[,1:2]),1))
-  if(family == "Kent") return(c(colMeans(x[,1:2]),colMeans(x[,1:2]),colMeans(x[,1:2]),5,1))
+get_init = function(psi, x){
+  if(is.null(psi$family)) return(NULL)
+  if(psi$family == "vmf") {
+    out = colMeans(x[,1:2])
+    if(is.null(psi$k)) {
+      out = c(out, 5)
+      names(out)[length(out)] = "k"
+    }
+    return(out)
+  }
+  if(psi$family == "kent") {
+    out = rep(colMeans(x[,1:2]),3)
+    if(is.null(psi$k)) {
+      out = c(out, 5)
+      names(out)[length(out)] = "k"
+    }
+    if(is.null(psi$b)) {
+      out = c(out, 1)
+      names(out)[length(out)] = "b"
+    }
+    return(out)
+  }
 }
 
 #' @keywords internal
-get_out = function(est, family){
-  if(is.null(family)) return(list(
-    est = est$par
+get_out = function(est, psi){
+  if(is.null(psi$family)) return(list(
+    est = est$par, val = est$value
   ))
-  if(family=="von Mises Fisher") return(list(
-    mu = est$par[1:2] %% c(pi, 2*pi), k = est$par[3], family = family
-  ))
-  if(family=="Kent") return(list(
-    mu = est$par[1:2] %% c(pi, 2*pi),
-    major = est$par[3:4] %% c(pi, 2*pi),
-    minor = est$par[5:6] %% c(pi, 2*pi),
-    k = est$par[7], b = est$par[8], family = family
-  ))
+  if(psi$family=="vmf") {
+    k = if(!is.null(psi$k)) psi$k else est$par[3]
+    return(list(
+    mu = est$par[1:2], k = k, family = "von Mises Fisher", val = est$value
+  ))}
+  if(psi$family=="kent") {
+    k = if(!is.null(psi$k)) psi$k else est$par[7]
+    b = if(!is.null(psi$k)) psi$b else est$par[8]
+    return(list(
+    mu = est$par[1:2], major = est$par[3:4], minor = est$par[5:6], val = est$value,
+    k = k, b = b, family = "Kent"
+  ))}
 }
 
 #' @keywords internal
@@ -222,13 +239,11 @@ match_g_sphere = function(g, g_opt){
   stop(paste0("g must be one of: ", types[1], ", ", types[3], ", ", types[4]))
 }
 
+
 #' @keywords internal
-match_family_psi_sphere = function(name, psi){
-  if(typeof(psi) == "closure") return(list(f=psi, family=NULL))
-  types = c("vmf", "von Mises Fisher", "von-Mises Fisher", "kent")
-  pick = grep(name, types, ignore.case = TRUE)
-  if(pick==1 | pick==2 | pick==3) return(list(f=psi_vmf, family="von Mises Fisher"))
-  if(pick==4) return(list(f=psi_kent, family="Kent"))
+match_family_psi_sphere = function(psi, options_psi){
+  if(!is.null(options_psi)) return(list(f=options_psi, family=NULL))
+  if(typeof(psi) == "list") return(list(f=psi$f, family=psi$family, k=psi$k, b=psi$b))
   stop("either 'family' or 'psi' need to be specified, see ?sphere_sm")
 }
 
@@ -238,6 +253,8 @@ match_family_psi_sphere = function(name, psi){
 #'
 #' @param par parameter vector to be estimated
 #' @param x random variable x, taken one row at a time
+#' @param k concentration parameter (vmf and kent distribution)
+#' @param b ovalness parameter (kent distribution)
 #'
 #' @details \code{psi_vmf} corresponds to the von-Mises Fisher distribution, where \code{psi_kent} corresponds to the
 #' Kent distribution. The parameters to be estimated for the von-Mises Fisher distribution are the mean direction \code{mu} and
@@ -254,27 +271,38 @@ NULL
 
 #' @rdname spherical_dist
 #' @export
-psi_vmf = function(par, x) {
-  mu = par[1:3]
-  k = par[4]
+psi_vmf = function(par, x, k=NULL) {
+  mu = sphere_to_euclid(par[1:2])
+  if(is.null(k)) k = par[3]
   if(k < 0) return(list(f=rep(9e5,3), grad=matrix(9e5,3,3)))
   return(list("f"=k*mu, "grad"=matrix(0, length(mu), length(mu))))
 }
 
 #' @rdname spherical_dist
 #' @export
-psi_kent = function(par, x){
-  gamma1 = par[1:3]
-  gamma2 = par[4:6]
-  gamma3 = par[7:9]
-  k = par[10]
-  b = par[11]
-  if(2*b > k | b < 0 | k < 0) return(list(f=rep(9e5,3), grad=matrix(9e5,3,3)))
+psi_kent = function(par, x, k=NULL, b=NULL){
+  gamma1 = sphere_to_euclid(par[1:2])
+  gamma2 = sphere_to_euclid(par[3:4])
+  gamma3 = sphere_to_euclid(par[5:6])
+  if(is.null(k)) k = par[7]
+  if(is.null(b)) b = par[8]
+
   list(
     "f" = k*gamma1 + 2*b*(gamma2 %*% t(gamma2 %*% x) - gamma3 %*% t(gamma3 %*% x)),
     "grad" = 2*b*(gamma2 %*% t(gamma2) - gamma3 %*% t(gamma3))
   )
 }
 
+#' @rdname spherical_dist
+#' @export
+kent = function(k=NULL, b=NULL) {
+  list(f=function(par, x) psi_kent(par, x, k=k, b=b),family="kent", k=k, b=b)
+}
+
+#' @rdname spherical_dist
+#' @export
+vmf = function(k=NULL) {
+  list(f=function(par, x) psi_vmf(par, x, k=k), family="vmf", k=k)
+}
 
 

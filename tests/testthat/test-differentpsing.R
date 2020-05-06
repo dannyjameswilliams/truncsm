@@ -31,8 +31,8 @@ test_that("input different psi and g (NORMAL)", {
 test_that("input different psi and g (SPHERICAL)", {
   psi_vmf2 = function(par, x, k=30){
     list(
-      "f" = k*par,
-      "grad" = matrix(0, nrow= length(par), ncol=length(par))
+      "f" = k*sphere_to_euclid(par),
+      "grad" = matrix(0, nrow=3, ncol=3)
     )
   }
   g_def2 = function(x, dV, r=NULL){

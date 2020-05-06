@@ -4,16 +4,26 @@
 \alias{spherical_dist}
 \alias{psi_vmf}
 \alias{psi_kent}
+\alias{kent}
+\alias{vmf}
 \title{Derivatives of the Log Density of spherical distributions}
 \usage{
-psi_vmf(par, x)
+psi_vmf(par, x, k = NULL)
 
-psi_kent(par, x)
+psi_kent(par, x, k = NULL, b = NULL)
+
+kent(k = NULL, b = NULL)
+
+vmf(k = NULL)
 }
 \arguments{
 \item{par}{parameter vector to be estimated}
 
 \item{x}{random variable x, taken one row at a time}
+
+\item{k}{concentration parameter (vmf and kent distribution)}
+
+\item{b}{ovalness parameter (kent distribution)}
 }
 \value{
 list containing two elements

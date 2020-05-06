@@ -1,9 +1,8 @@
 #' @keywords internal
 par_to_euclid = function(x){
-  times = if(length(x) >= 4) 4 else 2
   times = if(length(x) >= 6) 6 else 2
   xout = c()
-  for(i in seq(1, times, by =2)){
+  for(i in seq(1, times, by = 2)){
     xout = append(xout, cos(x[i]))
     xout = append(xout, sin(x[i])*cos(x[i+1]))
     xout = append(xout, sin(x[i])*sin(x[i+1]))

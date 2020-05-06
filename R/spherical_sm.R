@@ -5,28 +5,34 @@
 #' @param z matrix of euclidean coordinates
 #' @param dV boundary in euclidean coordinates
 #' @param r radius of sphere
+#' @param axis axis on which to project to, i.e. this axis is kept constant and distance is measured from the remaining two
 #'
 #' @details For data in Euclidean coordinates on a sphere, such as those from von-Mises Fisher distribution,
-#' this function projects these points onto a 2D disk, and takes the Euclidean distance between the now 2D
+#' this function projects these points onto a 2D plane, and takes the Euclidean distance between the now 2D
 #' points and the boundary.
 #'
-#' This is used for describing the boundary function \eqn{g}.
+#' To specify \code{axis}, i.e. the axis of projection, include \code{axis} as an element of
+#' the \code{options} list in the call to \code{\link{sphere_sm}},
+#' e.g. \code{sphere_sm(..., options = list(axis = 2))}.
+#'
+#' This function is used for describing the boundary function \eqn{g}.
 #'
 #' @return List containing two elements
 #' \item{\code{g}}{values of function \code{g}}
 #' \item{\code{grad}}{matrix of derivatives of \code{g}}
 #'
 #' @export
-g_disk = function(z, dV, r = NULL){
+g_disk = function(z, dV, r = NULL, axis=3){
+  proj = c(1,2,3)[-axis]
   grad = array(NA, dim(z))
   ztilde = array(NA, c(nrow(z), 2))
   for(i in 1:nrow(z)){
-    diffs = dV[,1:2] - matrix(unlist(c(z[i,1:2])), nrow(dV), ncol(dV)-1, byrow=TRUE)
-    ztilde[i,] = dV[which.min(sqrt(rowSums(diffs^2))), 1:2]
+    diffs = dV[,proj] - matrix(unlist(c(z[i,proj])), nrow(dV), ncol(dV)-1, byrow=TRUE)
+    ztilde[i,] = dV[which.min(sqrt(rowSums(diffs^2))), proj]
     P = diag(3) - z[i,] %*% t(z[i,])
-    grad[i, ] = P %*% c((z[i,1:2] - ztilde[i,])/ sum(sqrt((z[i,1:2]-ztilde[i,])^2)), 0)
+    grad[i, ] = P %*% c((z[i,proj] - ztilde[i,])/ sum(sqrt((z[i,proj]-ztilde[i,])^2)), 0)
   }
-  list("g"    = sqrt(rowSums((z[,1:2] - ztilde)^2)),
+  list("g"    = sqrt(rowSums((z[,proj] - ztilde)^2)),
        "grad" = grad
   )
 }
@@ -175,7 +181,7 @@ sphere_sm = function(x, dV, family=vmf(), g="Default", init=NULL, options=list()
   zdV = sphere_to_euclid(dV)
 
   psi = match_family_psi_sphere(family, options$psi)
-  g_fn = match_g_sphere(g, options$g)
+  g_fn = match_g_sphere(g, options)
   obj_fn = get_J(z, zdV, g_fn, psi$f)
 
   if(is.null(init)) init = get_init(psi, x)
@@ -229,12 +235,15 @@ get_out = function(est, psi){
 }
 
 #' @keywords internal
-match_g_sphere = function(g, g_opt){
-  if(typeof(g_opt)=="closure") return(g_opt)
+match_g_sphere = function(g, options){
+  if(typeof(options$g)=="closure") return(options$g)
   types = c("Default", "Disk", "Euclidean", "Haversine")
   pick = grep(g, types, ignore.case = TRUE)
   if(pick == 1) return(g_default_sphere)
-  if(pick == 2 | pick == 3) return(g_disk)
+  if(pick == 2 | pick == 3) {
+    axis = if(!is.null(options$axis)) axis=options$axis else 3
+    return(function(x, dV, r) g_disk(x, dV, r, axis))
+  }
   if(pick == 4) return(g_hav)
   stop(paste0("g must be one of: ", types[1], ", ", types[3], ", ", types[4]))
 }

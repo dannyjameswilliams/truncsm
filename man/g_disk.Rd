@@ -4,7 +4,7 @@
 \alias{g_disk}
 \title{Euclidean distance on disk}
 \usage{
-g_disk(z, dV, r = NULL)
+g_disk(z, dV, r = NULL, axis = 3)
 }
 \arguments{
 \item{z}{matrix of euclidean coordinates}
@@ -12,6 +12,8 @@ g_disk(z, dV, r = NULL)
 \item{dV}{boundary in euclidean coordinates}
 
 \item{r}{radius of sphere}
+
+\item{axis}{axis on which to project to, i.e. this axis is kept constant and distance is measured from the remaining two}
 }
 \value{
 List containing two elements
@@ -23,7 +25,7 @@ Boundary function which projects region onto 2D disk
 }
 \details{
 For data in Euclidean coordinates on a sphere, such as those from von-Mises Fisher distribution,
-this function projects these points onto a 2D disk, and takes the Euclidean distance between the now 2D
+this function projects these points onto a 2D plane, and takes the Euclidean distance between the now 2D
 points and the boundary.
 
 This is used for describing the boundary function \eqn{g}.

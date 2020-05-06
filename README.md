@@ -1,14 +1,16 @@
 [![Build Status](https://travis-ci.com/dannyjameswilliams/truncsm.svg?branch=master)](https://travis-ci.com/dannyjameswilliams/truncsm)  
-<!--- [![codecov](https://codecov.io/gh/jakespiteri/chicagocrime/branch/master/graph/badge.svg)](https://codecov.io/gh/jakespiteri/chicagocrime) --->
+
 
 # truncsm package
 
-This package is an implementation of truncated score matching, developed by Song Liu et al, which you can find here:
+This package begins with an implementation of truncated score matching, developed by Song Liu et al, which you can find here:
 [Estimating Density Models with Complex Truncation Boundaries](https://arxiv.org/abs/1910.03834)
 
-**This package is a work in progress.**
+This work has been extended to score matching estimation on a manifold, with applications on a sphere. This is the R code accompaniment to the COMPASS mini project report. 
 
 ## Installation
+
+**Currently the package is private, so cannot be installed in this way. See the vignettes for examples of the code being run**
 
 This package can be installed through github, which you will need the `devtools` package for. To install `devtools`, [please see here](https://www.r-project.org/nosvn/pandoc/devtools.html). Once this is installed, you can install this package with the command in R:
 ```
@@ -17,21 +19,20 @@ devtools::install_github("dannyjameswilliams/truncsm")
 
 ## The Package
 
-The aim of the package is to provide straightfoward access to estimating parameters in a truncated setting. The idea is to minimise
-the difference between the gradient of the log density for the model pdf and the data pdf, with a function that describes
-behaviour at the boundary of the objective function.
+The aim of the package is to provide straightfoward access to estimating parameters in a truncated setting. The idea is to minimise the difference between the gradient of the log density for the model pdf and the data pdf, with a function that describes behaviour at the boundary of the objective function.
 
-The function `truncsm` is the main feature of the package. Currently, you use the function in the following way:
+The functions `truncsm` and `sphere_sm` are the main feature of the package. Currently, you use the functions in the following way:
 
   1. Calculate `x`, the truncated dataset
   2. Form the boundary, i.e. a set of vertices that form a closed loop (so the first vertex = the second vertex)
-  3. Use the function `polygon_points` to transform this boundary into a sequence of points
+  3. Transform this boundary into a high resolution set of points (you can use `polygon_points` in the case of the boundary being in the format of an R polygon)
   4. (Optional) set up functions for the first and second derivative of the log density, or the function that defines the boundary
-     (Alternatively) specify the `family` argument, however this is currently only available for the multivariate normal distribution.
-  5. Run `truncsm` using these arguments, which will numerically optimise to find the parameter estimates.
+     (Alternatively) specify the `family` argument
+  5. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`
+  5. Run `truncsm` or `sphere_sm` using these arguments, which will numerically optimise to find the parameter estimates.
   
 
- ## Multivariate Normal Example
+ ## `truncsm`: Multivariate Normal Example
  
  Here is some code which exemplifies the useage of this package to accurately estimate the mean of a multivariate Normal distribution centred on (2,2):
  

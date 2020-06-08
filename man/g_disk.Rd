@@ -28,5 +28,9 @@ For data in Euclidean coordinates on a sphere, such as those from von-Mises Fish
 this function projects these points onto a 2D plane, and takes the Euclidean distance between the now 2D
 points and the boundary.
 
-This is used for describing the boundary function \eqn{g}.
+To specify \code{axis}, i.e. the axis of projection, include \code{axis} as an element of
+the \code{options} list in the call to \code{\link{sphere_sm}},
+e.g. \code{sphere_sm(..., options = list(axis = 2))}.
+
+This function is used for describing the boundary function \eqn{g}.
 }

@@ -223,14 +223,17 @@ get_out = function(est, psi){
   if(psi$family=="vmf") {
     k = if(!is.null(psi$k)) psi$k else est$par[3]
     return(list(
-    mu = est$par[1:2], k = k, family = "von Mises Fisher", val = est$value
+    mu = est$par[1:2] %% c(pi, 2*pi),
+    k = k, family = "von Mises Fisher", val = est$value
   ))}
   if(psi$family=="kent") {
     k = if(!is.null(psi$k)) psi$k else est$par[7]
     b = if(!is.null(psi$k)) psi$b else est$par[8]
     return(list(
-    mu = est$par[1:2], major = est$par[3:4], minor = est$par[5:6], val = est$value,
-    k = k, b = b, family = "Kent"
+    mu = est$par[1:2] %% c(pi, 2*pi),
+    major = est$par[3:4] %% c(pi, 2*pi),
+    minor = est$par[5:6] %% c(pi, 2*pi),
+    val = est$value, k = k, b = b, family = "Kent"
   ))}
 }
 

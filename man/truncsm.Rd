@@ -4,7 +4,7 @@
 \alias{truncsm}
 \title{Truncated Score Matching}
 \usage{
-truncsm(x, dV, family = "mvn", init = rep(0.1, ncol(x)), options = list())
+truncsm(x, dV, family = mvn(), init = colMeans(x), options = list())
 }
 \arguments{
 \item{x}{truncated random observation}

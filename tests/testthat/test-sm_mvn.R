@@ -11,7 +11,7 @@ test_that("mvn simulation", {
     dV = polygon_points(x_bounds, y_bounds, 50)
     truncated_points = point.in.polygon(x[,1],x[,2], x_bounds, y_bounds)
     truncated_x = x[as.logical(truncated_points),]
-    truncsm_est = truncsm(x=truncated_x, dV = dV, family="mvn")
+    truncsm_est = truncsm(x=truncated_x, dV = dV, family=mvn(Cov = 1))
     return(norm(real_mean - truncsm_est, "2"))
   }
   out = rep(NA, 100)

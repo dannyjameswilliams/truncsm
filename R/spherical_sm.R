@@ -121,7 +121,7 @@ get_J = function(z, dV, g, psi, r=1){
       grad = psi_eval$f; grad2 = psi_eval$grad
       P = diag(3) - z0 %*% t(z0)
       Jout[i] = g_val[i] * t(P %*% grad) %*% (P %*% grad) +
-        2*g_val[i] * sum(diag(-2 * z0 %*% t(grad) + grad2 %*% P)) +
+        2*g_val[i] * sum(diag((-2 * z0 %*% t(grad) + grad2 %*% P))) +
         2*(t(P %*% grad) %*% g_grad[i,])
     }
     return(0.5*mean(Jout))

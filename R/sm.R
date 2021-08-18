@@ -70,9 +70,10 @@ J_ = function(theta, x, dV, psi, g_val, g_grad){
 #' @importFrom stats optim
 #' @return parameter estimates given by score matching
 #' @export
-truncsm = function(x, dV, family="mvn", init=rep(0.1,ncol(x)),
+truncsm = function(x, dV, family=mvn(), init=NULL,
                    options = list()){
   x = as.matrix(x)
+  if(is.null(init)) init = colMeans(x)
   psi = match_family_psi(family, options)
   g = match_g(options)
   g_eval = g(x, dV)
@@ -89,10 +90,9 @@ match_g = function(options){
 
 #' @keywords internal
 match_family_psi = function(name, options, psi=NULL){
-  if(!is.null(options$psi)) {
-    return(options$psi)
-  }
-  if(name=="mvn") return(psi_mvn)
+  if(!is.null(options$psi)) return(options$psi)
+   else if (typeof(name) == "closure") return(name)
+   else if (name == "mvn") return(mvn())
   stop("either 'family' or 'psi' need to be specified, see ?truncsm")
 }
 
@@ -102,16 +102,101 @@ match_family_psi = function(name, options, psi=NULL){
 #'
 #' @param theta parameters to be estimated, can include elements of the covariance matrix
 #' @param x random variable x, taken one row at a time
+#' @param Cov optional; either a fully supplied covariance matrix, or a single digit indicating the diagonal of the covariance matrix. If unsupplied, the covariance matrix is estimate.dp
 #'
 #' @return list containing two elements
 #' \item{\code{f}}{the evaluation of the first derivative}
 #' \item{\code{grad}}{the evaluation of the second derivative}
 #'
+#' @name mvn_dist
+NULL
+
+#' @rdname mvn_dist
 #' @export
-psi_mvn = function(theta, x) {
-  if(length(theta)>length(x)) Cov = matrix(theta[(length(x)+1):length(theta)],length(x),length(x)) else Cov = diag(length(theta))
+psi_mvn = function(theta, x, Cov=NULL) {
+  if(is.null(Cov)) Cov = matrix(theta[(length(x)+1):length(theta)], length(x), length(x))
+  if(length(Cov) == 1) Cov = diag(Cov, length(x))
   mu = theta[1:length(x)]
   x = as.vector(x)
   Cov_inv = solve(Cov)
   return(list("f"=-Cov_inv %*% (x-mu), "grad"=-Cov_inv))
+}
+
+#' @rdname mvn_dist
+#' @export
+mvn = function(Cov=NULL) {
+  function(par, x) psi_mvn(par, x, Cov=Cov)
+}
+
+
+#' L2 Constraint (Truncation)
+#'
+#' @importFrom pracma fmincon
+truncateL2 = function(x){
+  n = nrow(x)
+  m = ncol(x)
+
+  all1s = permutations(2, m-1, c(-1, 1), rep=TRUE)
+
+  t = array(NA, c(n, m))
+  f = rep(NA, n)
+
+  for(i in 1:n){
+    obj = function(a) sqrt(sum((a-x[i,])^2))
+    tt = array(NA, c(2^(m-1)+1, m))
+    ff = rep(NA, 2^(m-1)+1)
+
+    for(j in 1:nrow(all1s)){
+      out    = fmincon(rep(0, m), obj, A = t(c(all1s[j,],1)), b = 1)
+      tt[j,] = out$par
+      ff[j]  = out$value
+    }
+    out      = fmincon(rep(0, m), obj, A = t(c(rep(0, m-1),1)), b = 0)
+    tt[j+1,] = out$par
+    ff[j+1]  = out$value
+
+    f[i] = min(ff)
+    t[i,] = tt[which.min(ff),]
+  }
+
+}
+
+#' Project data to Lq ball
+#'
+#' @param x data matrix n x d
+#' @param q order of Lq ball
+#'
+#' @return projections as coordinates
+#'
+#' @export
+project = function(x, q = 2, mod = 1){
+  n = nrow(x)
+  m = ncol(x)
+
+  t = array(NA, c(n, m))
+  f = rep(NA, n)
+
+  t = foreach(i = 1:n, .combine = rbind) %dopar% {
+    obj = function(a) Norm(a - x[i,], 2)
+
+    if(q == 2) {
+      ini = rnorm(m)
+      out = solnp(ini/sum(ini), obj, eqfun = function(a) Norm(a, q), eqB = mod,
+                  control = list(trace = 0))
+      val = out$par
+    } else if (q == 1){
+      tt = array(NA, c(2^(m), m))
+      ff = rep(NA, 2^(m))
+      all1s = gtools::permutations(2, m, c(-1, 1), rep=TRUE)*mod
+      for(j in 1:nrow(all1s)){
+        out    = solnp(all1s[j,], obj, eqfun = function(a) Norm(a, q), eqB = mod,
+                       control = list(trace = 0))
+        tt[j,] = out$par
+        ff[j]  = out$value[length(out$value)]
+      }
+      val = tt[which.min(ff),]
+    }
+    val
+  }
+  return(t)
 }

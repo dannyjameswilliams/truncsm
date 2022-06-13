@@ -7,8 +7,7 @@ par_to_euclid = function(x){
     xout = append(xout, sin(x[i])*cos(x[i+1]))
     xout = append(xout, sin(x[i])*sin(x[i+1]))
   }
-  if(length(x) > times) xout = append(xout,
-                                             x[(times+1):length(x)])
+  if(length(x) > times) xout = append(xout, x[(times+1):length(x)])
   return(xout)
 }
 

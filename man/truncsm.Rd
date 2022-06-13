@@ -4,7 +4,7 @@
 \alias{truncsm}
 \title{Truncated Score Matching}
 \usage{
-truncsm(x, dV, family = mvn(), init = colMeans(x), options = list())
+truncsm(x, dV, family = mvn(), init = NULL, options = list(), ...)
 }
 \arguments{
 \item{x}{truncated random observation}
@@ -16,6 +16,8 @@ truncsm(x, dV, family = mvn(), init = colMeans(x), options = list())
 \item{init}{initial conditions to be passed to \code{\link[stats]{optim}}}
 
 \item{options}{extra options that can be specified, see details}
+
+\item{...}{additional arguments that can be passed to optim}
 }
 \value{
 parameter estimates given by score matching

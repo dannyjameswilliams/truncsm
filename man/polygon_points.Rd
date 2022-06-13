@@ -28,5 +28,5 @@ and \code{y} must match the first vertex.
 }
 \examples{
 # make unit square
-  polygon_points(c(-1,-1,1,1,-1),c(-1,1,1,-1,-1))
+  polygon_points(c(-1,-1,1,1,-1), c(-1,1,1,-1,-1))
 }

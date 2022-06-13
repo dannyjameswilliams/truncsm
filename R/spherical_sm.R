@@ -174,6 +174,7 @@ g_default_sphere = function(z, dV, r=NULL){
 #' return the first and second derivative of the log pdf as \code{f} and \code{grad} respectively in a list. See \code{\link{psi_vmf}}
 #' or \code{\link{psi_kent}} for examples.
 #' @return parameter estimates
+#' @importFrom stats optim
 #' @export
 sphere_sm = function(x, dV, family=vmf(), g="Default", init=NULL, options=list()){
   x = as.matrix(x)

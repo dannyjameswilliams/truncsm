@@ -7,7 +7,7 @@
 g_def(x, dV)
 }
 \arguments{
-\item{x}{single point in truncated region}
+\item{x}{dataset in truncated region}
 
 \item{dV}{boundary in points}
 }
@@ -17,6 +17,20 @@ list with two elements
 \item{\code{grad}}{matrix of derivatives of \code{g}}
 }
 \description{
-Default boundary function \eqn{g_0(x)} as described in "Estimating Density Models with Complex Truncation Boundaries"
-by Song Liu et al
+One distance to the boundary function \eqn{g_0(x)} as described in \href{https://arxiv.org/pdf/1910.03834.pdf}{Estimating Density Models with Complex Truncation Boundaries}
+(Liu et al. 2022), for use in \code{\link{truncsm}}.
+}
+\details{
+This distance function is the \eqn{L_2} distance, i.e.
+\deqn{
+d(x, x') = \sqrt{\sum_j (x_j - x_j')^2}
+}
+where \eqn{x'} is the projected boundary point from \eqn{x}.
+The function first manually calculates the closest point on the boundary (from a representative sample of points, \code{dV}), then
+the \eqn{L_2} distance between the projections and the data.
+
+This code is written to be generic - given any set of boundary points \code{dV}, calculate the distance between the projections and the data.
+If you want to speedup computation, you can specify a more specific \eqn{g} function. For example, if you want a more efficient way of getting the
+same result for the truncation region of the \eqn{L_2} ball, you can implement a function such as,
+\code{g = function(x, dV) return(list(g = 1 - sqrt(rowSums(x^2)), grad = -x / sqrt(rowSums(x.^2))))}
 }

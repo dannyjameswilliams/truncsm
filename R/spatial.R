@@ -17,7 +17,7 @@
 #'
 #' @examples
 #' # make unit square
-#'   polygon_points(c(-1,-1,1,1,-1),c(-1,1,1,-1,-1))
+#'   polygon_points(c(-1,-1,1,1,-1), c(-1,1,1,-1,-1))
 polygon_points = function(x, y, res = 20){
   out = cbind(seq(x[1],x[2], len=res),seq(y[1],y[2], len=res))
   for(j in 2:(length(x)-1)){

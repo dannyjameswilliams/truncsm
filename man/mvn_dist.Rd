@@ -6,16 +6,16 @@
 \alias{mvn}
 \title{Derivatives of the Log Density of Multivariate Normal Distribution}
 \usage{
-psi_mvn(theta, x, Cov = NULL)
+psi_mvn(theta, x, Sigma = NULL)
 
-mvn(Cov = NULL)
+mvn(Sigma = NULL)
 }
 \arguments{
 \item{theta}{parameters to be estimated, can include elements of the covariance matrix}
 
 \item{x}{random variable x, taken one row at a time}
 
-\item{Cov}{optional; either a fully supplied covariance matrix, or a single digit indicating the diagonal of the covariance matrix. If unsupplied, the covariance matrix is estimate.dp}
+\item{Sigma}{optional; either a fully supplied covariance matrix, or a single digit indicating the diagonal of the covariance matrix. If not supplied, the covariance matrix is estimated.}
 }
 \value{
 list containing two elements

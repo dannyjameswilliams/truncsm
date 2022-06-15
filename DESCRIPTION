@@ -10,7 +10,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.5.0), stats
-Imports: sp, geosphere, pracma, Rsolnp, gtools
+Imports: geosphere, pracma, Rsolnp, gtools
 Suggests: 
     testthat (>= 2.1.0),
     knitr,

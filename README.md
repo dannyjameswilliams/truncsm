@@ -31,6 +31,8 @@ The functions `truncsm` and `sphere_sm` are the main feature of the package. Cur
   5. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`
   5. Run `truncsm` or `sphere_sm` using these arguments, which will numerically optimise to find the parameter estimates.
   
+ ## `sphere_sm` Examples
+ Please see the html file (and Rmarkdown file) in `tutorials/` to see a few examples of estimating in the case of a 2D sphere, using the von-Mises Fisher distribution and the Kent distribution.
 
  ## `truncsm`: Multivariate Normal Example
  

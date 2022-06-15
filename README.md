@@ -10,8 +10,6 @@ This work has been extended to score matching estimation on a manifold, with app
 
 ## Installation
 
-**Currently the package is private, so cannot be installed in this way. See the vignettes for examples of the code being run**
-
 This package can be installed through github, which you will need the `devtools` package for. To install `devtools`, [please see here](https://www.r-project.org/nosvn/pandoc/devtools.html). Once this is installed, you can install this package with the command in R:
 ```
 devtools::install_github("dannyjameswilliams/truncsm")
@@ -30,15 +28,42 @@ The functions `truncsm` and `sphere_sm` are the main feature of the package. Cur
      (Alternatively) specify the `family` argument
   5. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`
   5. Run `truncsm` or `sphere_sm` using these arguments, which will numerically optimise to find the parameter estimates.
-  
+
  ## `sphere_sm` Examples
- Please see the html file (and Rmarkdown file) in `tutorials/` to see a few examples of estimating in the case of a 2D sphere, using the von-Mises Fisher distribution and the Kent distribution.
+ Please see the Rmarkdown file in `tutorials/` to see a few examples of estimating in the case of a 2D sphere, using the von-Mises Fisher distribution and the Kent distribution. A quick example is given in the code snippet below. First, simulate some data from a von-Mises Fisher distribution.
+ 
+```r
+library(truncsm)
+n = 1000              
+centre = c(pi/2, pi) 
+centre_euclid = sphere_to_euclid(centre)   
+set.seed(4)
+z = Rfast::rvmf(n, centre_euclid, k = 6)
+x = euclid_to_sphere(z)
+
+dV = cbind(rep(pi/2+0.2, 200), seq(0, 2*pi, len=200))
+outside_boundary = x[,1] > (pi/2+0.2)
+truncated_x = x[outside_boundary,]
+
+```
+then estimate using `sphere_sm` (assuming the concentration parameter is known at `k=6`)
+```r
+est = sphere_sm(truncated_x, dV, g = "Haversine", family = vmf(k=6))
+```
+then you can plot 
+```r
+plot(x, pch=20, col="grey")
+points(truncated_x, pch=20)
+points(est_hav$mu[1], est_hav$mu[2], pch=20, cex=3, col="red")
+```
+and you should expect:
+![Example estimate](https://user-images.githubusercontent.com/56155783/173839117-b8ed943d-1c88-435d-b066-fb474c0b88fa.png)
 
  ## `truncsm`: Multivariate Normal Example
  
  Here is some code which exemplifies the useage of this package to accurately estimate the mean of a multivariate Normal distribution centred on (2,2):
  
- ```
+ ```r
 library(truncsm)
 library(sp)
 
@@ -51,6 +76,7 @@ x = cbind(rnorm(n, 2),rnorm(n, 2))
 # get boundary and truncate points
 xV = c(0,1,1,4,2,0)
 yV = c(0.5,1,2,1,0,0.5)
+
 dV = polygon_points(xV, yV)
 truncated_points = point.in.polygon(x[,1],x[,2], xV, yV)
 truncated_x = x[as.logical(truncated_points),]

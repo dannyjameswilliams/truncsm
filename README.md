@@ -1,6 +1,3 @@
-[![Build Status](https://travis-ci.com/dannyjameswilliams/truncsm.svg?branch=master)](https://travis-ci.com/dannyjameswilliams/truncsm)  
-
-
 # truncsm package
 
 This package begins with an implementation of truncated score matching, developed by Song Liu, Takafumi Kanamori and myself, which you can find here:

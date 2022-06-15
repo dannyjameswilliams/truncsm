@@ -52,15 +52,16 @@ est = sphere_sm(truncated_x, dV, g = "Haversine", family = vmf(k=6))
 ```
 then you can plot 
 ```r
-plot(x, pch=20, col="grey")
-points(truncated_x, pch=20)
-points(est_hav$mu[1], est_hav$mu[2], pch=20, cex=3, col="red")
+library(ggplot2)
+ggplot() + geom_point(aes(x=x[,1], y=x[,2]), col="grey")+ geom_point(aes(x=truncated_x[,1], y=truncated_x[,2])) +
+  geom_point(aes(est_hav$mu[1], est_hav$mu[2]), col="red", size=4) + theme_minimal()
 ```
 and you should expect:
-![Example estimate](https://user-images.githubusercontent.com/56155783/173839117-b8ed943d-1c88-435d-b066-fb474c0b88fa.png)
+
+<img src="https://user-images.githubusercontent.com/56155783/173840452-9190b539-0b49-4d85-b072-36b651123f28.png" alt="Example estimate" width="500"/>
 
  ## `truncsm`: Multivariate Normal Example
- 
+
  Here is some code which exemplifies the useage of this package to accurately estimate the mean of a multivariate Normal distribution centred on (2,2):
  
  ```r

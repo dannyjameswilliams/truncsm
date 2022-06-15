@@ -3,10 +3,10 @@
 
 # truncsm package
 
-This package begins with an implementation of truncated score matching, developed by Song Liu et al, which you can find here:
+This package begins with an implementation of truncated score matching, developed by Song Liu, Takafumi Kanamori and myself, which you can find here:
 [Estimating Density Models with Truncation Boundaries using Score Matching](https://arxiv.org/abs/1910.03834)
 
-This work has been extended to score matching estimation on a manifold, with applications on a sphere. This is the R code accompaniment to the COMPASS mini project report. 
+This work has been extended to score matching estimation on a manifold, with applications on a sphere, which is what this work is focused on.
 
 ## Installation
 

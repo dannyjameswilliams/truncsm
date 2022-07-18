@@ -12,9 +12,9 @@ This package can be installed through github, which you will need the `devtools`
 devtools::install_github("dannyjameswilliams/truncsm")
 ```
 
-## The Package
+## Overview 
 
-The aim of the package is to provide straightfoward access to estimating parameters in a truncated setting. The idea is to minimise the difference between the gradient of the log density for the model pdf and the data pdf, with a function that describes behaviour at the boundary of the objective function.
+The aim of the R package is to provide straightfoward access to estimating parameters in a truncated setting. The idea is to minimise the difference between the gradient of the log density for the model pdf and the data pdf, with a function that describes behaviour at the boundary of the objective function.
 
 The functions `truncsm` and `sphere_sm` are the main feature of the package. Currently, you use the functions in the following way:
 
@@ -26,8 +26,13 @@ The functions `truncsm` and `sphere_sm` are the main feature of the package. Cur
   5. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`
   5. Run `truncsm` or `sphere_sm` using these arguments, which will numerically optimise to find the parameter estimates.
 
- ## `sphere_sm` Examples
- Please see the Rmarkdown file in `tutorials/` to see a few examples of estimating in the case of a 2D sphere, using the von-Mises Fisher distribution and the Kent distribution. A quick example is given in the code snippet below. First, simulate some data from a von-Mises Fisher distribution.
+## Manifold Score Matching Examples
+
+### Main Tutorial 
+Please see the Rmarkdown file in `tutorials/` to see a few examples of estimating in the case of a 2D sphere, using the von-Mises Fisher distribution and the Kent distribution. To run this file, make sure this package is installed (see above), then open `tutorials/simulate.Rmd` in Rstudio. Provided you have the necessary installations for rendering Rmarkdown content, you should be able to knit the document to a HTML or PDF, and view the results there.
+
+### Quick Example
+A quick example is given in the code snippet below. First, simulate some data from a von-Mises Fisher distribution.
  
 ```r
 library(truncsm)

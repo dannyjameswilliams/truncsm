@@ -1,7 +1,7 @@
 # truncsm package
 
-This package begins with an implementation of truncated score matching, developed by Song Liu, Takafumi Kanamori and myself, which you can find here:
-[Estimating Density Models with Truncation Boundaries using Score Matching](https://arxiv.org/abs/1910.03834)
+This package begins with my implementation of truncated score matching, or *TruncSM*, which is a method developed by Song Liu, Takafumi Kanamori and myself, which you can find here:
+[Estimating Density Models with Truncation Boundaries using Score Matching](https://arxiv.org/abs/1910.03834)<sup>1</sup>
 
 This work has been extended to score matching estimation on a manifold, with applications on a sphere, which is also implemented in this package.
 
@@ -91,3 +91,7 @@ points(truncated_x, col=rgb(0.2,0.2,0.7), pch=20)
 points(truncsm_est[1], truncsm_est[2], bg="green", cex=2, pch=21)
 points(2,2, bg="red", pch=21, cex=2)
  ```
+ 
+ ## References
+ 
+ [1] Liu, S., Kanamori, T., and Williams, D. J. Estimating density models with truncation boundaries using score matching. arXiv preprint, arXiv:1910.03834, 2022.

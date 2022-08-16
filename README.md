@@ -17,14 +17,15 @@ devtools::install_github("dannyjameswilliams/truncsm")
 
 The aim of the R package is to provide straightfoward access to estimating parameters in a truncated setting. The idea is to minimise the difference between the gradient of the log density for the model pdf and the data pdf, with a function that describes behaviour at the boundary of the objective function.
 
+Please see the attached papers for details on the implementation. In its current state, you can use `truncsm` and `sphere_sm` using mostly default arguments.
+
 The functions `truncsm` and `sphere_sm` are the main feature of the package. Currently, you use the functions in the following way:
 
-  1. Calculate `x`, the truncated dataset
-  2. Form the boundary, i.e. a set of vertices that form a closed loop (so the first vertex = the second vertex)
-  3. Transform this boundary into a high resolution set of points (you can use `polygon_points` in the case of the boundary being in the format of an R polygon)
-  4. (Optional) set up functions for the first and second derivative of the log density, or the function that defines the boundary
+  1. Given a truncated dataset, `X`, whose truncation is caused by a physical boundary, such as a series of lines (e.g. a country's borders) or otherwise
+  2. Given a set of boundary points, `dV`, which make up a high resolution point set of the physical boundary that has truncated the dataset `X` (e.g. longitude and latitude of the country's borders)
+  3. (Optional) set up functions for the first and second derivative of the log density, or the function that defines the boundary
      (Alternatively) specify the `family` argument
-  5. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`
+  4. (Optional) specify the scaling function. The default argument is no scaling function for `sphere_sm` and Euclidean distance function for `truncsm`. For `sphere_sm`, you may choose `Haversine` or `Projected Euclidean`.
   5. Run `truncsm` or `sphere_sm` using these arguments, which will numerically optimise to find the parameter estimates.
 
 ## Manifold Score Matching Examples
